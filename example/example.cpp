@@ -1,5 +1,7 @@
-#include "stdio.h"
+
+#include "logger.hpp"
+
 int main()
 {
-	printf("hello world!");
+    __LOG(error, "hello logger!");
 }
