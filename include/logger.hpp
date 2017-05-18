@@ -28,19 +28,21 @@
 
 #include <memory>
 #include <mutex>
-#include <string>
-#include <iostream>
+#include <string>       // std::string
+#include <iostream>     // std::cout
+#include <sstream>      // std::ostringstream
 
-//! logger_iface
-//! should be inherited by any class intended to be used for logging
+typedef std::basic_ostream<char> tostream;
+typedef std::basic_istream<char> tistream;
+typedef std::basic_ostringstream<char> tostringstream;
+typedef std::basic_istringstream<char> tistringstream;
+
 class logger_iface
 {
   public:
-    //! ctor & dtor
     logger_iface(void) = default;
     virtual ~logger_iface(void) = default;
 
-    //! copy ctor & assignment operator
     logger_iface(const logger_iface &) = default;
     logger_iface &operator=(const logger_iface &) = default;
 
@@ -51,7 +53,6 @@ class logger_iface
     virtual void error(const std::string &msg, const std::string &file, std::size_t line) = 0;
 };
 
-//! default logger class provided by the library
 class logger : public logger_iface
 {
   public:
@@ -65,11 +66,9 @@ class logger : public logger_iface
     };
 
   public:
-    //! ctor & dtor
     logger(log_level level = log_level::info);
     ~logger(void) = default;
 
-    //! copy ctor & assignment operator
     logger(const logger &) = default;
     logger &operator=(const logger &) = default;
 
@@ -84,19 +83,20 @@ class logger : public logger_iface
     std::mutex m_mutex;
 };
 
-//! variable containing the current logger
-//! by default, not set (no logs)
-
-//! convenience functions used internaly to call the logger
 void debug(const std::string &msg, const std::string &file, std::size_t line);
 void info(const std::string &msg, const std::string &file, std::size_t line);
 void warn(const std::string &msg, const std::string &file, std::size_t line);
 void error(const std::string &msg, const std::string &file, std::size_t line);
 
 #define __LOGGING_ENABLED
-//! convenience macro to log with file and line information
+
 #ifdef __LOGGING_ENABLED
-#define __LOG(level, msg) level(msg, __FILE__, __LINE__);
+#define __LOG(level, msg) \
+{                       \
+    tostringstream & var;\
+    var << msg;     \
+    level(var.str(), __FILE__, __LINE__); \
+}
 #else
 #define __LOG(level, msg)
 #endif /* __LOGGING_ENABLED */
@@ -156,7 +156,6 @@ void debug(const std::string &msg, const std::string &file, std::size_t line)
 
 void info(const std::string &msg, const std::string &file, std::size_t line)
 {
-    //std::cout << "Maxx logger info, active_logger is : " << (void *)(active_logger)<<std::endl;
     if (active_logger)
         active_logger->info(msg, file, line);
 }
