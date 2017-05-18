@@ -93,7 +93,7 @@ void error(const std::string &msg, const std::string &file, std::size_t line);
 #ifdef __LOGGING_ENABLED
 #define __LOG(level, msg) \
 {                       \
-    tostringstream & var;\
+    tostringstream  var;\
     var << msg;     \
     level(var.str(), __FILE__, __LINE__); \
 }

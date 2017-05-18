@@ -3,5 +3,5 @@
 
 int main()
 {
-    __LOG(error, "hello logger!");
+    __LOG(error, "hello logger!" << "test ostream");
 }
