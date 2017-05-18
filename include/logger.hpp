@@ -94,7 +94,7 @@ void error(const std::string &msg, const std::string &file, std::size_t line);
 #define __LOG(level, msg) \
 {                       \
     tostringstream  var;\
-    var << msg;     \
+    var << "[fuction:" << __func__ << "] " <<msg;     \
     level(var.str(), __FILE__, __LINE__); \
 }
 #else
