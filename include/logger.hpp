@@ -117,7 +117,7 @@ void logger::debug(const std::string &msg, const std::string &file, std::size_t 
     if (m_level >= log_level::debug)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
-        std::cout << "[" << black << "DEBUG" << normal << "][" << file << ":" << line << "] " << msg << std::endl;
+        std::cout << "[" << black << "DEBUG" << normal << "] [" << file << ":" << line << "] " << msg << std::endl;
     }
 }
 
