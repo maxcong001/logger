@@ -3,6 +3,7 @@
 
 int main()
 {
+    set_log_level(logger_iface::log_level::debug);
     __LOG(error, "hello logger!"
                      << "this is error log");
     __LOG(warn, "hello logger!"
