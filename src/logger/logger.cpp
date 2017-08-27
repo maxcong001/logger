@@ -25,7 +25,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "logger.hpp"
+#include "logger/logger.hpp"
 static const char black[] = {0x1b, '[', '1', ';', '3', '0', 'm', 0};
 static const char red[] = {0x1b, '[', '1', ';', '3', '1', 'm', 0};
 static const char yellow[] = {0x1b, '[', '1', ';', '3', '3', 'm', 0};
