@@ -32,7 +32,10 @@
 #include <string>   // std::string
 #include <iostream> // std::cout
 #include <sstream>  // std::ostringstream
-
+#include <array>
+#include <atomic>
+#include <memory>
+#define MAX_LOG_BUFFER 10000
 typedef std::basic_ostream<char> tostream;
 typedef std::basic_istream<char> tistream;
 typedef std::basic_ostringstream<char> tostringstream;
@@ -63,6 +66,7 @@ public:
   virtual void info(const std::string &msg, const std::string &file, std::size_t line) = 0;
   virtual void warn(const std::string &msg, const std::string &file, std::size_t line) = 0;
   virtual void error(const std::string &msg, const std::string &file, std::size_t line) = 0;
+  virtual void dump() = 0;
 };
 
 class logger : public logger_iface
@@ -80,10 +84,14 @@ public:
   void info(const std::string &msg, const std::string &file, std::size_t line);
   void warn(const std::string &msg, const std::string &file, std::size_t line);
   void error(const std::string &msg, const std::string &file, std::size_t line);
+  void write2buff(const std::string &msg, const std::string &file, std::size_t line, const std::string &log_level);
+  void dump();
 
 private:
   logger_iface::log_level m_level;
   std::mutex m_mutex;
+  std::atomic<unsigned int> _id;
+  std::array<std::shared_ptr<std::string>, (MAX_LOG_BUFFER + 20)> _buffer;
 };
 
 void debug(const std::string &msg, const std::string &file, std::size_t line);
@@ -91,13 +99,14 @@ void info(const std::string &msg, const std::string &file, std::size_t line);
 void warn(const std::string &msg, const std::string &file, std::size_t line);
 void error(const std::string &msg, const std::string &file, std::size_t line);
 void set_log_level(logger_iface::log_level level);
+void dump_log();
 
 #define __LOGGING_ENABLED
 
 #ifdef __LOGGING_ENABLED
 #define __LOG(level, msg)                          \
   \
-{                                             \
+{                                               \
     tostringstream var;                            \
     var << "[fuction:" << __func__ << "] " << msg; \
     level(var.str(), __FILE__, __LINE__);          \
