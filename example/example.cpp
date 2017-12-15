@@ -4,6 +4,7 @@
 int main()
 {
     set_log_level(logger_iface::log_level::warn);
+    set_max_log_buff(10);
     for (int i = 0; i < 100; i++)
     {
         __LOG(error, "hello logger!"

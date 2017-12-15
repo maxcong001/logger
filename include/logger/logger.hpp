@@ -35,7 +35,7 @@
 #include <array>
 #include <atomic>
 #include <memory>
-#define MAX_LOG_BUFFER 10000
+#define MAX_LOG_BUFFER 1000
 typedef std::basic_ostream<char> tostream;
 typedef std::basic_istream<char> tistream;
 typedef std::basic_ostringstream<char> tostringstream;
@@ -54,7 +54,10 @@ public:
   };
 
 public:
-  logger_iface(void) = default;
+  logger_iface(void)
+  {
+    _max_buff = MAX_LOG_BUFFER;
+  }
   virtual ~logger_iface(void) = default;
 
   logger_iface(const logger_iface &) = default;
@@ -67,6 +70,13 @@ public:
   virtual void warn(const std::string &msg, const std::string &file, std::size_t line) = 0;
   virtual void error(const std::string &msg, const std::string &file, std::size_t line) = 0;
   virtual void dump() = 0;
+
+  void set_max_buff(unsigned int num)
+  {
+    _max_buff = num;
+  }
+
+  unsigned int _max_buff;
 };
 
 class logger : public logger_iface
@@ -100,7 +110,7 @@ void warn(const std::string &msg, const std::string &file, std::size_t line);
 void error(const std::string &msg, const std::string &file, std::size_t line);
 void set_log_level(logger_iface::log_level level);
 void dump_log();
-
+void set_max_log_buff(unsigned int num);
 #define __LOGGING_ENABLED
 
 #ifdef __LOGGING_ENABLED

@@ -86,7 +86,7 @@ void logger::error(const std::string &msg, const std::string &file, std::size_t 
 void logger::write2buff(const std::string &msg, const std::string &file, std::size_t line, const std::string &log_level)
 {
     // maybe we will lost 1 or 2 log here in multi-thread env, that is not matter....
-    if (++_id < MAX_LOG_BUFFER)
+    if (++_id < _max_buff)
     {
         std::shared_ptr<std::string> ptr1(new std::string("[" + file + ":" + std::to_string(line) + "][" + log_level + "]" + msg));
         _buffer.at(_id) = ptr1;
@@ -140,4 +140,10 @@ void dump_log()
 {
     if (active_logger)
         active_logger->dump();
+}
+
+void set_max_log_buff(unsigned int num)
+{
+    if (active_logger)
+        active_logger->set_max_buff(num);
 }
