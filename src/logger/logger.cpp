@@ -88,13 +88,13 @@ void logger::write2buff(const std::string &msg, const std::string &file, std::si
     // maybe we will lost 1 or 2 log here in multi-thread env, that is not matter....
     if (++_id < _max_buff)
     {
-        std::shared_ptr<std::string> ptr1(new std::string("[" + file + ":" + std::to_string(line) + "][" + log_level + "]" + msg));
-        _buffer.at(_id) = ptr1;
     }
     else
     {
         _id = 0;
     }
+    std::shared_ptr<std::string> ptr1(new std::string("[" + file + ":" + std::to_string(line) + "][" + log_level + "]" + msg));
+    _buffer.at(_id) = ptr1;
 }
 void logger::dump()
 {
