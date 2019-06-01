@@ -1,6 +1,6 @@
 # logger function
 
-
+## please refer to the new implement: https://github.com/maxcong001/boostlogger
 ## just include the header file. with 
 
 
