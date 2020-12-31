@@ -1,20 +1,25 @@
 
-#include "logger/logger.hpp"
 
+#include "logger/simpleLogger.hpp"
+
+#include <chrono>
+#include <thread>
 int main()
 {
-    set_log_level(logger_iface::log_level::warn);
-    set_max_log_buff(10);
-    for (int i = 0; i < 100; i++)
-    {
-        __LOG(error, "hello logger!"
-                         << "this is error log");
-        __LOG(warn, "hello logger!"
-                        << "this is warn log");
-        __LOG(info, "hello logger!"
-                        << "this is info log");
-        __LOG(debug, "hello logger!"
-                         << "this is debug log");
-    }
-    dump_log();
+
+
+	INIT_LOGGER(new simpleLogger());
+	SET_LOG_LEVEL(debug);
+	__LOG(critical, "hello logger!"
+						<< "this is critical log" << (void *)ACTIVE_LOGGER_INSTANCE);
+	__LOG(error, "hello logger!"
+					 << "this is error log" << (void *)ACTIVE_LOGGER_INSTANCE);
+	__LOG(warn, "hello logger!"
+					<< "this is warn log" << (void *)ACTIVE_LOGGER_INSTANCE);
+	__LOG(info, "hello logger!"
+					<< "this is info log" << (void *)ACTIVE_LOGGER_INSTANCE);
+	__LOG(debug, "hello logger!"
+					 << "this is debug log" << (void *)ACTIVE_LOGGER_INSTANCE);
+
+
 }

@@ -27,101 +27,95 @@
 
 #pragma once
 
-#include <memory>
-#include <mutex>
 #include <string>   // std::string
 #include <iostream> // std::cout
-#include <sstream>  // std::ostringstream
-#include <array>
-#include <atomic>
+#include <fstream>
+#include <sstream> // std::ostringstream
 #include <memory>
-#define MAX_LOG_BUFFER 1000
-typedef std::basic_ostream<char> tostream;
-typedef std::basic_istream<char> tistream;
+
 typedef std::basic_ostringstream<char> tostringstream;
-typedef std::basic_istringstream<char> tistringstream;
+static const char black[] = {0x1b, '[', '1', ';', '3', '0', 'm', 0};
+static const char red[] = {0x1b, '[', '1', ';', '3', '1', 'm', 0};
+static const char yellow[] = {0x1b, '[', '1', ';', '3', '3', 'm', 0};
+static const char blue[] = {0x1b, '[', '1', ';', '3', '4', 'm', 0};
+static const char normal[] = {0x1b, '[', '0', ';', '3', '9', 'm', 0};
+#define ACTIVE_LOGGER_INSTANCE (*activeLogger::getLoggerAddr())
+// note: this will replace the logger instace. If this is not the first time to set the logger instance.
+// Please make sure to delete/free the old instance.
+#define INIT_LOGGER(loggerImpPtr)          \
+  {                                        \
+    ACTIVE_LOGGER_INSTANCE = loggerImpPtr; \
+    ACTIVE_LOGGER_INSTANCE->init();        \
+  }
+#define CHECK_LOG_LEVEL(logLevel) (ACTIVE_LOGGER_INSTANCE ? ((ACTIVE_LOGGER_INSTANCE->get_log_level() <= log_level::logLevel##_level) ? true : false) : false)
+#define SET_LOG_LEVEL(logLevel)                                             \
+  {                                                                         \
+    if (ACTIVE_LOGGER_INSTANCE)                                             \
+      (ACTIVE_LOGGER_INSTANCE->set_log_level(log_level::logLevel##_level)); \
+  }
+#define DESTROY_LOGGER                \
+  {                                   \
+    if (ACTIVE_LOGGER_INSTANCE)       \
+    {                                 \
+      ACTIVE_LOGGER_INSTANCE->stop(); \
+      delete ACTIVE_LOGGER_INSTANCE;  \
+    }                                 \
+  }
+
+enum log_level
+{
+  debug_level = 0,
+  info_level,
+  warn_level,
+  error_level,
+  critical_level
+};
 
 class logger_iface
 {
 public:
-  //! log level
-  enum class log_level
-  {
-    error = 0,
-    warn = 1,
-    info = 2,
-    debug = 3
-  };
-
-public:
-  logger_iface(void)
-  {
-    _max_buff = MAX_LOG_BUFFER;
-  }
+  logger_iface(void) = default;
   virtual ~logger_iface(void) = default;
-
   logger_iface(const logger_iface &) = default;
   logger_iface &operator=(const logger_iface &) = default;
 
 public:
-  virtual void set_log_level(logger_iface::log_level level) = 0;
-  virtual void debug(const std::string &msg, const std::string &file, std::size_t line) = 0;
-  virtual void info(const std::string &msg, const std::string &file, std::size_t line) = 0;
-  virtual void warn(const std::string &msg, const std::string &file, std::size_t line) = 0;
-  virtual void error(const std::string &msg, const std::string &file, std::size_t line) = 0;
-  virtual void dump() = 0;
-
-  void set_max_buff(unsigned int num)
-  {
-    _max_buff = num;
-  }
-
-  unsigned int _max_buff;
+  virtual void init() = 0;
+  virtual void stop() = 0;
+  virtual void set_log_level(log_level level) = 0;
+  virtual log_level get_log_level() = 0;
+  virtual void debug_log(const std::string &msg) = 0;
+  virtual void info_log(const std::string &msg) = 0;
+  virtual void warn_log(const std::string &msg) = 0;
+  virtual void error_log(const std::string &msg) = 0;
+  virtual void critical_log(const std::string &msg) = 0;
 };
 
-class logger : public logger_iface
+class activeLogger
 {
 public:
-  logger(logger_iface::log_level level = logger_iface::log_level::info);
-  ~logger(void) = default;
-
-  logger(const logger &) = default;
-  logger &operator=(const logger &) = default;
-
-public:
-  void set_log_level(logger_iface::log_level level);
-  void debug(const std::string &msg, const std::string &file, std::size_t line);
-  void info(const std::string &msg, const std::string &file, std::size_t line);
-  void warn(const std::string &msg, const std::string &file, std::size_t line);
-  void error(const std::string &msg, const std::string &file, std::size_t line);
-  void write2buff(const std::string &msg, const std::string &file, std::size_t line, const std::string &log_level);
-  void dump();
-
-private:
-  logger_iface::log_level m_level;
-  std::mutex m_mutex;
-  std::atomic<unsigned int> _id;
-  std::array<std::shared_ptr<std::string>, (MAX_LOG_BUFFER + 20)> _buffer;
+  static logger_iface **getLoggerAddr()
+  {
+    static logger_iface *activeLogger;
+    return &activeLogger;
+  }
 };
 
-void debug(const std::string &msg, const std::string &file, std::size_t line);
-void info(const std::string &msg, const std::string &file, std::size_t line);
-void warn(const std::string &msg, const std::string &file, std::size_t line);
-void error(const std::string &msg, const std::string &file, std::size_t line);
-void set_log_level(logger_iface::log_level level);
-void dump_log();
-void set_max_log_buff(unsigned int num);
 #define __LOGGING_ENABLED
 
 #ifdef __LOGGING_ENABLED
-#define __LOG(level, msg)                          \
-  \
-{                                               \
-    tostringstream var;                            \
-    var << "[fuction:" << __func__ << "] " << msg; \
-    level(var.str(), __FILE__, __LINE__);          \
-  \
-}
+#define __LOG(levelin, msg)                                                  \
+                                                                             \
+  {                                                                          \
+    if (ACTIVE_LOGGER_INSTANCE->get_log_level() <= levelin##_level)          \
+    {                                                                        \
+      tostringstream var;                                                    \
+      var << "[" << __FILE__ << ":" << __LINE__ << ":" << __func__ << "] \n" \
+          << msg;                                                            \
+      if (ACTIVE_LOGGER_INSTANCE)                                            \
+        ACTIVE_LOGGER_INSTANCE->levelin##_log(var.str());                    \
+    }                                                                        \
+  }
 #else
 #define __LOG(level, msg)
 #endif /* __LOGGING_ENABLED */
